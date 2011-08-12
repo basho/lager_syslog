@@ -16,6 +16,13 @@
   level or above into syslog). While you can filter messages at the syslog
   level, it will improve performance if you filter in lager instead.
 
+  An example for [[http://www.basho.com/products_riak_overview.php][riak]]
+  would look something like this:
+
+#+BEGIN_EXAMPLE
+  {lager_syslog_backend, ["riak", local7, info]}
+#+END_EXAMPLE
+
   Refer to Lager's documentation for futher information on configuring handlers.
 
 * Troubleshooting
