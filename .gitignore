@@ -1,0 +1,6 @@
+.eunit
+.project
+deps
+ebin
+log
+.settings
