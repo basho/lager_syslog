@@ -115,9 +115,9 @@ convert_level(?EMERGENCY) -> emerg.
 -define(TEST_STATE(Level),#state{facility=?TEST_FACILITY,format_config=[message],formatter=lager_default_formatter,level=Level}).
 
 % just in case you want to test that it actually goes to syslog
- log_test() ->
- 	{ok,_}=init(["Lager",local0,debug]),
-     ?MODULE:handle_event(?TEST_MESSAGE(?EMERGENCY,[]), #state{format_config=[],formatter=lager_default_formatter,level=?DEBUG}).
+%%  log_test() ->
+%%  	{ok,_}=init(["Lager",local0,debug]),
+%%      ?MODULE:handle_event(?TEST_MESSAGE(?EMERGENCY,[]), #state{format_config=[],formatter=lager_default_formatter,level=?DEBUG}).
 	
 calls_syslog_test_() ->
 	{foreach, fun() -> erlymock:start(),
