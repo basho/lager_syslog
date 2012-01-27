@@ -7,6 +7,8 @@
 
 #+BEGIN_EXAMPLE
   {lager_syslog_backend, [Identity, Facility, Level]}
+  % or
+  {lager_syslog_backend, [Identity, Facility, Level, {Formatter,FormatConfig}]}
 #+END_EXAMPLE
 
   The Identity is the string to tag all messages with in syslog, usually the
