@@ -95,6 +95,7 @@ handle_info(_Info, State) ->
 
 %% @private
 terminate(_Reason, _State) ->
+	application:stop(syslog),
     ok.
 
 %% @private
