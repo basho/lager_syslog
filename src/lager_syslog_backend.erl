@@ -14,7 +14,7 @@
 %% specific language governing permissions and limitations
 %% under the License.
 
-%% @doc Console backend for lager. Configured with a single option, the loglevel
+%% @doc Syslog backend for lager.
 %% desired.
 
 -module(lager_syslog_backend).
