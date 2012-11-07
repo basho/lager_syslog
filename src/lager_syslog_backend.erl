@@ -15,7 +15,6 @@
 %% under the License.
 
 %% @doc Syslog backend for lager.
-%% desired.
 
 -module(lager_syslog_backend).
 
