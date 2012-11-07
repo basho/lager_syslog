@@ -1,4 +1,4 @@
-%% Copyright (c) 2011 Basho Technologies, Inc.  All Rights Reserved.
+%% Copyright (c) 2011-2012 Basho Technologies, Inc.  All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -23,41 +23,68 @@
 -export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2,
         code_change/3]).
 
--record(state, {level}).
+-record(state, {level, formatter,format_config}).
 
 -include_lib("lager/include/lager.hrl").
 
+-define(TERSE_FORMAT,[time, " [", severity,"] ", message]).
+
 %% @private
-init([Ident, Facility, Level]) ->
-    case application:start(syslog) of
+init([Ident, Facility, Level]) when is_atom(Level) ->
+    init([Ident, Facility, [Level, {lager_default_formatter, ?TERSE_FORMAT}]]);
+init([Ident, Facility, [Level, true]]) -> % for backwards compatibility
+    init([Ident, Facility, [Level, {lager_default_formatter,[{eol, "\r\n"}]}]]);
+init([Ident, Facility, [Level, false]]) -> % for backwards compatibility
+    init([Ident, Facility, [Level, {lager_default_formatter, ?TERSE_FORMAT}]]);
+init([Ident, Facility, [Level, {Formatter, FormatterConfig}]]) when is_atom(Level), is_atom(Formatter) ->	
+	case application:start(syslog) of
         ok ->
-            init2(Ident, Facility, Level);
+            init2([Ident, Facility, [Level, {Formatter, FormatterConfig}]]);
         {error, {already_started, _}} ->
-            init2(Ident, Facility, Level);
+            init2([Ident, Facility, [Level, {Formatter, FormatterConfig}]]);
         Error ->
             Error
     end.
 
-init2(Ident, Facility, Level) ->
+%% @private
+init2([Ident, Facility, [Level, {Formatter, FormatterConfig}]]) ->
     case syslog:open(Ident, [pid], Facility) of
         ok ->
-            {ok, #state{level=lager_util:level_to_num(Level)}};
-        Error ->
-            Error
+            case lists:member(Level, ?LEVELS) of
+				true ->
+					{ok, #state{level=lager_util:level_to_num(Level),
+								formatter=Formatter,
+								format_config=FormatterConfig}};
+				_ ->
+					{error, bad_log_level}
+			end;
+		Error ->
+			Error
     end.
+
 
 %% @private
 handle_call(get_loglevel, #state{level=Level} = State) ->
     {ok, Level, State};
 handle_call({set_loglevel, Level}, State) ->
-    {ok, ok, State#state{level=lager_util:level_to_num(Level)}};
+    case lists:member(Level, ?LEVELS) of
+        true ->
+            {ok, ok, State#state{level=lager_util:level_to_num(Level)}};
+        _ ->
+            {ok, {error, bad_log_level}, State}
+    end;
 handle_call(_Request, State) ->
     {ok, ok, State}.
 
 %% @private
-handle_event({log, Level, {_Date, _Time}, [_LevelStr, Location, Message]}, State) ->
-    syslog:log(convert_level(Level), [Location, Message]),
-    {ok, State};
+handle_event({log, Message}, #state{level=Level,formatter=Formatter,format_config=FormatConfig} = State) ->
+    case lager_util:is_loggable(Message, Level, ?MODULE) of
+        true ->
+			syslog:log(lager_msg:severity_as_int(Message), [Formatter:format(Message, FormatConfig)]),
+            {ok, State};
+        false ->
+            {ok, State}
+    end;
 handle_event(_Event, State) ->
     {ok, State}.
 
@@ -67,19 +94,9 @@ handle_info(_Info, State) ->
 
 %% @private
 terminate(_Reason, _State) ->
-    application:stop(syslog),
+	application:stop(syslog),
     ok.
 
 %% @private
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-
-convert_level(?DEBUG) -> debug;
-convert_level(?INFO) -> info;
-convert_level(?NOTICE) -> notice;
-convert_level(?WARNING) -> warning;
-convert_level(?ERROR) -> err;
-convert_level(?CRITICAL) -> crit;
-convert_level(?ALERT) -> alert;
-convert_level(?EMERGENCY) -> emergency.
-
