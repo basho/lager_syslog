@@ -27,27 +27,31 @@
 
 -include_lib("lager/include/lager.hrl").
 
--define(TERSE_FORMAT,["[", severity,"] ", message]).
+-define(DEFAULT_FORMAT,["[", severity, "] ",
+        {pid, ""},
+        {module, [
+                {pid, ["@"], ""},
+                module,
+                {function, [":", function], ""},
+                {line, [":",line], ""}], ""},
+        " ", message]).
+
 
 %% @private
 init([Ident, Facility, Level]) when is_atom(Level) ->
-    init([Ident, Facility, [Level, {lager_default_formatter, ?TERSE_FORMAT}]]);
-init([Ident, Facility, [Level, true]]) -> % for backwards compatibility
-    init([Ident, Facility, [Level, {lager_default_formatter,[{eol, "\r\n"}]}]]);
-init([Ident, Facility, [Level, false]]) -> % for backwards compatibility
-    init([Ident, Facility, [Level, {lager_default_formatter, ?TERSE_FORMAT}]]);
-init([Ident, Facility, [Level, {Formatter, FormatterConfig}]]) when is_atom(Level), is_atom(Formatter) ->	
+    init([Ident, Facility, Level, {lager_default_formatter, ?DEFAULT_FORMAT}]);
+init([Ident, Facility, Level, {Formatter, FormatterConfig}]) when is_atom(Level), is_atom(Formatter) ->
     case application:start(syslog) of
         ok ->
-            init2([Ident, Facility, [Level, {Formatter, FormatterConfig}]]);
+            init2([Ident, Facility, Level, {Formatter, FormatterConfig}]);
         {error, {already_started, _}} ->
-            init2([Ident, Facility, [Level, {Formatter, FormatterConfig}]]);
+            init2([Ident, Facility, Level, {Formatter, FormatterConfig}]);
         Error ->
             Error
     end.
 
 %% @private
-init2([Ident, Facility, [Level, {Formatter, FormatterConfig}]]) ->
+init2([Ident, Facility, Level, {Formatter, FormatterConfig}]) ->
     case syslog:open(Ident, [pid], Facility) of
         {ok, Log} ->
             case lists:member(Level, ?LEVELS) of
