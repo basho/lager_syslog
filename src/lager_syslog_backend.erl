@@ -23,7 +23,7 @@
 -export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2,
         code_change/3]).
 
--record(state, {level}).
+-record(state, {level, handle}).
 
 -include_lib("lager/include/lager.hrl").
 
@@ -40,8 +40,8 @@ init([Ident, Facility, Level]) ->
 
 init2(Ident, Facility, Level) ->
     case syslog:open(Ident, [pid], Facility) of
-        ok ->
-            {ok, #state{level=lager_util:level_to_num(Level)}};
+        {ok, Log} ->
+            {ok, #state{level=lager_util:level_to_num(Level), handle=Log}};
         Error ->
             Error
     end.
@@ -55,8 +55,9 @@ handle_call(_Request, State) ->
     {ok, ok, State}.
 
 %% @private
-handle_event({log, Level, {_Date, _Time}, [_LevelStr, Location, Message]}, State) ->
-    syslog:log(convert_level(Level), [Location, Message]),
+handle_event({log, Level, {_Date, _Time}, [_LevelStr, Location, Message]},
+        #state{level=LogLevel} = State) when Level =< LogLevel ->
+    syslog:log(State#state.handle, convert_level(Level), [Location, Message]),
     {ok, State};
 handle_event(_Event, State) ->
     {ok, State}.
@@ -67,7 +68,6 @@ handle_info(_Info, State) ->
 
 %% @private
 terminate(_Reason, _State) ->
-    application:stop(syslog),
     ok.
 
 %% @private
