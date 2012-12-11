@@ -23,7 +23,9 @@
 -export([init/1, handle_call/2, handle_event/2, handle_info/2, terminate/2,
         code_change/3]).
 
--record(state, {level, handle, formatter,format_config}).
+-export([config_to_id/1]).
+
+-record(state, {level, handle, id, formatter,format_config}).
 
 -include_lib("lager/include/lager.hrl").
 
@@ -57,6 +59,7 @@ init2([Ident, Facility, Level, {Formatter, FormatterConfig}]) ->
             case lists:member(Level, ?LEVELS) of
                 true ->
                     {ok, #state{level=lager_util:level_to_num(Level),
+                            id=config_to_id([Ident, Facility, Level]),
                             handle=Log,
                             formatter=Formatter,
                             format_config=FormatterConfig}};
@@ -87,7 +90,7 @@ handle_event({log, Level, {_Date, _Time}, [_LevelStr, Location, Message]},
     syslog:log(State#state.handle, convert_level(Level), [Location, Message]),
     {ok, State};
 handle_event({log, Message}, #state{level=Level,formatter=Formatter,format_config=FormatConfig} = State) ->
-    case lager_util:is_loggable(Message, Level, ?MODULE) of
+    case lager_util:is_loggable(Message, Level, State#state.id) of
         true ->
             syslog:log(State#state.handle, lager_msg:severity_as_int(Message), [Formatter:format(Message, FormatConfig)]),
             {ok, State};
@@ -108,6 +111,12 @@ terminate(_Reason, _State) ->
 %% @private
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
+%% convert the configuration into a hopefully unique gen_event ID
+config_to_id([Ident, Facility, _Level]) ->
+    {?MODULE, {Ident, Facility}};
+config_to_id([Ident, Facility, _Level, _Formatter]) ->
+    {?MODULE, {Ident, Facility}}.
 
 convert_level(?DEBUG) -> debug;
 convert_level(?INFO) -> info;
