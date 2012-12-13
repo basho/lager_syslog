@@ -56,16 +56,17 @@ init([Ident, Facility, Level, {Formatter, FormatterConfig}]) when is_atom(Level)
 init2([Ident, Facility, Level, {Formatter, FormatterConfig}]) ->
     case syslog:open(Ident, [pid], Facility) of
         {ok, Log} ->
-            case lists:member(Level, ?LEVELS) of
-                true ->
-                    {ok, #state{level=lager_util:level_to_num(Level),
+            try parse_level(Level) of
+                Lvl ->
+                    {ok, #state{level=Lvl,
                             id=config_to_id([Ident, Facility, Level]),
                             handle=Log,
                             formatter=Formatter,
-                            format_config=FormatterConfig}};
-                _ ->
-                    {error, bad_log_level}
-            end;
+                            format_config=FormatterConfig}}
+                catch
+                    _:_ ->
+                        {error, bad_log_level}
+                end;
         Error ->
             Error
     end.
@@ -75,10 +76,11 @@ init2([Ident, Facility, Level, {Formatter, FormatterConfig}]) ->
 handle_call(get_loglevel, #state{level=Level} = State) ->
     {ok, Level, State};
 handle_call({set_loglevel, Level}, State) ->
-    case lists:member(Level, ?LEVELS) of
-        true ->
-            {ok, ok, State#state{level=lager_util:level_to_num(Level)}};
-        _ ->
+    try parse_level(Level) of
+        Lvl ->
+            {ok, ok, State#state{level=Lvl}}
+    catch
+        _:_ ->
             {ok, {error, bad_log_level}, State}
     end;
 handle_call(_Request, State) ->
@@ -92,7 +94,7 @@ handle_event({log, Level, {_Date, _Time}, [_LevelStr, Location, Message]},
 handle_event({log, Message}, #state{level=Level,formatter=Formatter,format_config=FormatConfig} = State) ->
     case lager_util:is_loggable(Message, Level, State#state.id) of
         true ->
-            syslog:log(State#state.handle, lager_msg:severity_as_int(Message), [Formatter:format(Message, FormatConfig)]),
+            syslog:log(State#state.handle, convert_level(lager_msg:severity_as_int(Message)), [Formatter:format(Message, FormatConfig)]),
             {ok, State};
         false ->
             {ok, State}
@@ -126,4 +128,14 @@ convert_level(?ERROR) -> err;
 convert_level(?CRITICAL) -> crit;
 convert_level(?ALERT) -> alert;
 convert_level(?EMERGENCY) -> emergency.
+
+parse_level(Level) ->
+    try lager_util:config_to_mask(Level) of
+        Res ->
+            Res
+    catch
+        error:undef ->
+            %% must be lager < 2.0
+            lager_util:level_to_num(Level)
+    end.
 
