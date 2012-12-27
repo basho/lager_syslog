@@ -127,7 +127,7 @@ convert_level(?WARNING) -> warning;
 convert_level(?ERROR) -> err;
 convert_level(?CRITICAL) -> crit;
 convert_level(?ALERT) -> alert;
-convert_level(?EMERGENCY) -> emergency.
+convert_level(?EMERGENCY) -> emerg.
 
 parse_level(Level) ->
     try lager_util:config_to_mask(Level) of
