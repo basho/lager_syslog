@@ -23,7 +23,7 @@
 
 #+BEGIN_EXAMPLE
   {handlers, [
-    {lager_syslog_backend, ["riak_info", local1, info]},
+    {lager_syslog_backend, ["riak", local1, info]},
   ] },
 #+END_EXAMPLE
 
