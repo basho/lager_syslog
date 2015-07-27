@@ -3,7 +3,7 @@
 {application, lager_syslog,
  [
   {description, "Syslog backend for Lager"},
-  {vsn, "2.1.1"},
+  {vsn, "2.1.2"},
   {modules, []},
   {applications, [
                   kernel,
