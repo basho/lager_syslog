@@ -3,6 +3,16 @@ notifications:
   webhooks: http://basho-engbot.herokuapp.com/travis?key=92c392ada1e45ef632b5df7cf7104e914a3fa999
   email: eng@basho.com
 otp_release:
+  - 19.2
   - R16B02
   - R15B01
   - R15B
+env:
+  - REBAR_V=2
+  - REBAR_V=3
+before_install:
+  - ./ci before_install "${REBAR_V:?}"
+install:
+  - ./ci install "${REBAR_V:?}"
+script:
+  - ./ci script "${REBAR_V:?}"
