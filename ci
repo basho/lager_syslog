@@ -22,7 +22,6 @@ case "${1:?}-${2:?}" in
     script-2)
         rebar compile
         rebar eunit
-        rebar dialyze
         ;;
     script-3)
         ./rebar3 compile
