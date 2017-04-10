@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -ev # Ref https://docs.travis-ci.com/user/customizing-the-build/#Implementing-Complex-Build-Steps
+
+case "${1:?}-${2:?}" in
+    before_install-2)
+        rebar version
+        cat rebar.config; sed -i.bak 's/{ref,\([^}]*\)}/\1/' rebar.config; cat rebar.config ## HACK for rebar 2 and rebar3 having different syntax for dependencies that are git repositories at specific commit.
+        ;;
+    before_install-3)
+        ## Travis CI does not support rebar3 yet. See https://github.com/travis-ci/travis-ci/issues/6506#issuecomment-275189490
+        curl -f -L -o ./rebar3 https://github.com/erlang/rebar3/releases/download/3.3.6/rebar3
+        chmod +x ./rebar3
+        ./rebar3 version
+        ;;
+    install-2)
+        rebar get-deps
+        ;;
+    install-3)
+        ./rebar3 deps
+        ;;
+    script-2)
+        rebar compile
+        rebar eunit
+        ;;
+    script-3)
+        ./rebar3 compile
+        ./rebar3 eunit
+        ./rebar3 dialyzer
+        ;;
+esac
