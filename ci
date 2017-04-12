@@ -20,10 +20,12 @@ case "${1:?}-${2:?}" in
         ;;
     script-2)
         rebar compile
+        test 1 -le $(find . -name syslog_drv.so | wc -l)
         rebar eunit
         ;;
     script-3)
         ./rebar3 compile
+        test 1 -le $(find . -name syslog_drv.so | wc -l)
         ./rebar3 eunit
         ./rebar3 dialyzer
         ;;
