@@ -1,0 +1,12 @@
+[{<<"goldrush">>,
+  {git,"git://github.com/DeadZen/goldrush.git",
+       {ref,"212299233c7e7eb63a97be2777e1c05ebaa58dbe"}},
+  1},
+ {<<"lager">>,
+  {git,"git://github.com/erlang-lager/lager.git",
+       {ref,"bce5504a955e52be8d5cf4b3c6b1fcd898ab5756"}},
+  0},
+ {<<"syslog">>,
+  {git,"git://github.com/Vagabond/erlang-syslog",
+       {ref,"e24c9ee8f7bb3f066ec152c210af10c2c712759a"}},
+  0}].
