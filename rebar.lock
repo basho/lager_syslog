@@ -1,12 +1,14 @@
-[{<<"goldrush">>,
-  {git,"git://github.com/DeadZen/goldrush.git",
-       {ref,"212299233c7e7eb63a97be2777e1c05ebaa58dbe"}},
-  1},
+{"1.1.0",
+[{<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.9">>},1},
  {<<"lager">>,
   {git,"git://github.com/erlang-lager/lager.git",
-       {ref,"bce5504a955e52be8d5cf4b3c6b1fcd898ab5756"}},
+       {ref,"bf60290101306b3cc26544d0d181a5cff8931e82"}},
   0},
  {<<"syslog">>,
   {git,"git://github.com/Vagabond/erlang-syslog",
-       {ref,"e24c9ee8f7bb3f066ec152c210af10c2c712759a"}},
-  0}].
+       {ref,"4a6c6f2c996483e86c1320e9553f91d337bcb6aa"}},
+  0}]}.
+[
+{pkg_hash,[
+ {<<"goldrush">>, <<"F06E5D5F1277DA5C413E84D5A2924174182FB108DABB39D5EC548B27424CD106">>}]}
+].
