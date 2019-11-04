@@ -2,7 +2,7 @@
 [{<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.9">>},1},
  {<<"lager">>,
   {git,"git://github.com/erlang-lager/lager.git",
-       {ref,"bf60290101306b3cc26544d0d181a5cff8931e82"}},
+       {ref,"22e62f28e5afabe90a6f31bcde367a2b5799fc94"}},
   0},
  {<<"syslog">>,
   {git,"git://github.com/Vagabond/erlang-syslog",
